@@ -5,11 +5,18 @@
  *      Author: @v-barros
  */
 #include "client.h"
-#define MAX 80
+#include "utils.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define MAX 110
+#define maxkeylength 100
 
 int read_command(char *buff);
 
-void func(int sockfd)
+void run(int sockfd)
 {
     char buff[MAX];
     char aux[MAX];
@@ -22,7 +29,7 @@ void func(int sockfd)
         len = is_valid_get(buff,len);
         if(len!=-1){
             encode_get(buff,len,aux);
-            printf("sending:\"%s\"%d\n",aux,len);
+            printf("sending:\"%s\"%d\n",aux,len+4);
             write(sockfd, buff, len+4);
         }
         else{
@@ -53,18 +60,53 @@ int encode_get(char *src,int len,char * dest){
     dest[0]='$';
     dest[1]='0';
     dest[2]='$';   
-    int n = toString(len,dest+3);
+    int n = itostring(len,dest+3);
     dest[3+n]='$';
     memcpy(dest+4+n,src,len);
-    dest[4+n+len]='\r';
-    dest[5+n+len]='\n';
+   // dest[4+n+len]='\0';    
+  //  dest[5+n+len]='\n';
     return 1;
 }
 
 char * get(char * key){
-
+    return NULL;
 }
 
 char * set(char * key, char *value){
+    return NULL;
 
+}
+
+// check if input string is a valid get command
+// return -1 if false
+// return key length otherwise
+// ex: c = "get key" len = 7
+// return 3
+// ex: c = "get key key2" len = 11
+// return -1
+int is_valid_get(char*c, int len){
+    int i=0,aux =0;
+    char * key;
+    char * check = "get";
+    if(len>maxkeylength+4)
+        return -1;
+
+    while (i<3){
+        if(c[i]!=tolower(check[i]))
+            return -1;
+        i++;
+    }
+    if(c[i++]!=' ')
+        return -1;
+    key =c+4;
+        
+    aux = len - 4;
+
+    i = 0;
+    while(i<aux){
+        if(*key+i == ' ')
+            return -1;
+        i++;
+    }
+    return aux;    
 }

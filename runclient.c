@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 {
     assert(argc == 2);
 
-    int socket_fd = connect(argv[1]);
+    int socket_fd = create_conn(argv[1]);
     // function for chat
     run(socket_fd);
    

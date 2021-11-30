@@ -13,7 +13,7 @@
 #define PORT 8080
 #define SA struct sockaddr
 
-int connect(char * address){
+int create_conn(char * address){
     int sockfd,connfd;
     struct sockaddr_in servaddr, cli;
    
