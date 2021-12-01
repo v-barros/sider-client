@@ -28,8 +28,9 @@ void run(int sockfd)
         len = read_command(buff);
         len = is_valid_get(buff,len);
         if(len!=-1){
-            encode_get(buff,len,aux);
-            printf("sending:\"%s\"%d\n",aux,len+4);
+           // printf("buff \"%s\"",buff);
+            len = encode_get(buff,len,aux);
+           // printf("sending:\"%s\"%d\n",aux,len); // "$0$3$foo\r\n"
             write(sockfd, buff, len+4);
         }
         else{
@@ -56,16 +57,17 @@ int read_command(char *buff){
     return n-1;
 }
 
-int encode_get(char *src,int len,char * dest){
+int encode_get(char *src,int keylen,char * dest){
     dest[0]='$';
     dest[1]='0';
     dest[2]='$';   
-    int n = itostring(len,dest+3);
+    int n = itostring(keylen,dest+3);
     dest[3+n]='$';
-    memcpy(dest+4+n,src,len);
-   // dest[4+n+len]='\0';    
-  //  dest[5+n+len]='\n';
-    return 1;
+    memcpy(dest+4+n,src+4,keylen);
+    dest[4+n+keylen]='\r';    
+    dest[5+n+keylen]='\n';
+   
+    return 6 + n +keylen;
 }
 
 char * get(char * key){
@@ -92,7 +94,7 @@ int is_valid_get(char*c, int len){
         return -1;
 
     while (i<3){
-        if(c[i]!=tolower(check[i]))
+        if(check[i]!=tolower(c[i]))
             return -1;
         i++;
     }
