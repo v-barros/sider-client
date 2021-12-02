@@ -31,7 +31,7 @@ void run(int sockfd)
            // printf("buff \"%s\"",buff);
             len = encode_get(buff,len,aux);
            // printf("sending:\"%s\"%d\n",aux,len); // "$0$3$foo\r\n"
-            write(sockfd, buff, len+4);
+            write(sockfd, aux, len);
         }
         else{
             printf("invalid command\n"); 
@@ -66,7 +66,6 @@ int encode_get(char *src,int keylen,char * dest){
     memcpy(dest+4+n,src+4,keylen);
     dest[4+n+keylen]='\r';    
     dest[5+n+keylen]='\n';
-   
     return 6 + n +keylen;
 }
 
