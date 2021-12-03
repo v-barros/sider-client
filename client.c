@@ -34,8 +34,9 @@ void run(int sockfd)
             write(sockfd, aux, len);
         }
         else{
+            write(sockfd, buff, 14);
             printf("invalid command\n"); 
-            continue;
+           // continue;
         }
             
         bzero(buff, sizeof(buff));
@@ -47,6 +48,8 @@ void run(int sockfd)
         }
     }
 }
+
+
 //read stdin, put the string at str and return string length
 //get key\n
 //return 7, put "get key" in buff   
@@ -54,6 +57,8 @@ int read_command(char *buff){
     int n =0;
     while ((buff[n++] = getchar()) != '\n');
     buff[n-1]=buff[n];
+    int k, v;
+    printf("is_valid_set %d ", is_valid_set(&k,&v,buff,n-1));
     return n-1;
 }
 
@@ -110,4 +115,55 @@ int is_valid_get(char*c, int len){
         i++;
     }
     return aux;    
+}
+
+
+// set foo bar 
+// srclen 11
+int is_valid_set(int *keylen, int * valuelen, char* src, int srclen){
+    int i=0,aux =0, tempklen;
+    char * temp;
+    char * check = "set";
+    
+    if(srclen>MAX)
+        return -1;
+
+    while (i<3){
+        if(check[i]!=tolower(src[i]))
+            return -1;
+        i++;
+    }
+    if(src[i]!=' ')
+        return -1;
+    temp =src+4;
+
+    i=0;
+
+    while(temp[i]!=' '){ 
+        if(i>=srclen-4) 
+            return -1;
+        i++;
+    }
+    if(!i)
+        return -1;
+    tempklen = i;
+
+    i = 0;
+    temp = src+4+tempklen;
+
+    if(*temp!=' ')
+        return -1;
+    temp++;
+    while(i<srclen-5-tempklen){
+        if(*temp+i==' ') 
+            return -1;
+        i++;
+    }
+    if(!i)
+        return -1;
+    *keylen = tempklen;
+    *valuelen = i;
+
+    return 1;
+
 }

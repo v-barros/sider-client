@@ -11,7 +11,7 @@ void run(int sockfd);
 
 int is_valid_get(char*c,int len);
 
-int is_valid_set(char*c,int len);
+int is_valid_set(int *keylen, int * valuelen, char* src, int srclen);
 
 char * get(char * key);
 
