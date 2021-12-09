@@ -25,8 +25,9 @@ int create_conn(char * address){
     }
     else
         printf("Socket successfully created..\n");
-    bzero(&servaddr, sizeof(servaddr));
-   
+    
+    memset(&servaddr,0,sizeof(servaddr));
+      
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = inet_addr(address);

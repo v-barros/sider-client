@@ -22,8 +22,8 @@ void run(int sockfd)
     char aux[MAX];
     int len;
     for (;;) {
-        bzero(buff, sizeof(buff));
-        bzero(aux,sizeof(aux));
+        memset(buff,0,sizeof(buff));
+        memset(aux,0,sizeof(aux));
         printf("\n>");
         len = read_command(buff);
         len = is_valid_get(buff,len);
@@ -39,7 +39,7 @@ void run(int sockfd)
            // continue;
         }
             
-        bzero(buff, sizeof(buff));
+        memset(buff,0,sizeof(buff));
         read(sockfd, buff, sizeof(buff));
         printf("\"%s\"", buff);
         if ((strncmp(buff, "exit", 4)) == 0) {
