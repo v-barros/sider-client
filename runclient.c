@@ -10,12 +10,13 @@
 
 int main(int argc, char **argv)
 {
-    assert(argc == 2);
+    assert(argc == 3);
+    int port = strtol(argv[2],NULL,10);
+    context * scontext = contextInit(argv[1],port);
 
-    int socket_fd = create_conn(argv[1]);
     // function for chat
-    run(socket_fd);
+    run(scontext->sockfd);
    
     // close the socket
-    close_socket(socket_fd);
+    close_socket(scontext->sockfd);
 }

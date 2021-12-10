@@ -5,22 +5,34 @@
  *      Author: @v-barros
  */
 #include "client.h"
+#include "connection.h"
 #include "utils.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <assert.h>
 
 #define MAX 110
 #define maxkeylength 100
 
 int read_command(char *buff);
 
+context * contextInit(char * serveripv4addr, u_int16_t port){
+    context * cp = (struct context *) malloc(sizeof(context));
+    assert(cp);
+    cp->sockfd = create_conn(serveripv4addr,port);
+    cp->serverport = port;
+    cp->ipv4addr = serveripv4addr;
+    return cp;
+}
+
 void run(int sockfd)
 {
     char buff[MAX];
     char aux[MAX];
     int len;
+
     for (;;) {
         memset(buff,0,sizeof(buff));
         memset(aux,0,sizeof(aux));
@@ -33,8 +45,7 @@ void run(int sockfd)
            // printf("sending:\"%s\"%d\n",aux,len); // "$0$3$foo\r\n"
             write(sockfd, aux, len);
         }
-        else{
-            write(sockfd, buff, 14);
+        else{    
             printf("invalid command\n"); 
            // continue;
         }
@@ -58,7 +69,7 @@ int read_command(char *buff){
     while ((buff[n++] = getchar()) != '\n');
     buff[n-1]=buff[n];
     int k, v;
-    printf("is_valid_set %d ", is_valid_set(&k,&v,buff,n-1));
+   // printf("is_valid_set %d ", is_valid_set(&k,&v,buff,n-1));
     return n-1;
 }
 
@@ -74,14 +85,14 @@ int encode_get(char *src,int keylen,char * dest){
     return 6 + n +keylen;
 }
 
-char * get(char * key){
+char * get(context * context,char * key){
     return NULL;
 }
 
-char * set(char * key, char *value){
+char * set(context * context,char * key, char *value){
     return NULL;
-
 }
+
 
 // check if input string is a valid get command
 // return -1 if false

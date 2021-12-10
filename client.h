@@ -6,6 +6,17 @@
  */
 #ifndef CLIENT_H_
 #define CLIENT_H_
+#include <stdlib.h>
+
+typedef struct context {
+    char *ipv4addr;
+    char * wbuff; 
+    int sockfd;
+    u_int16_t serverport;     
+} context;
+
+
+context * contextInit(char * serveripv4addr, u_int16_t port);
 
 void run(int sockfd);
 
@@ -13,9 +24,9 @@ int is_valid_get(char*c,int len);
 
 int is_valid_set(int *keylen, int * valuelen, char* src, int srclen);
 
-char * get(char * key);
+char * get(context * context,char * key);
 
-char * set(char * key, char *value);
+char * set(context * context,char * key, char *value);
 
 
 /*

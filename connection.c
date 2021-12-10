@@ -10,12 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#define PORT 8080
 #define SA struct sockaddr
 
-int create_conn(char * address){
+int create_conn(char * address, u_int16_t port){
     int sockfd,connfd;
-    struct sockaddr_in servaddr, cli;
+    struct sockaddr_in servaddr;
    
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -31,7 +30,7 @@ int create_conn(char * address){
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = inet_addr(address);
-    servaddr.sin_port = htons(PORT);
+    servaddr.sin_port = htons(port);
    
     // connect the client socket to server socket
     if (connect(sockfd,(SA*)&servaddr, sizeof(servaddr)) != 0) {
