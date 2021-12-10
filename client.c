@@ -12,11 +12,29 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
-
+#include <unistd.h>
 #define MAX 110
 #define maxkeylength 100
 
-int read_command(char *buff);
+int readstdin(char *buff);
+
+int buffRead(context *cp);
+
+int buffWrite(context *cp){
+    if(cp->bufflen>0){
+        ssize_t nwrite = write(cp->sockfd,cp->wbuff,cp->bufflen);
+        if(nwrite<0){
+            return 0;
+        }
+        if(nwrite == cp->bufflen){
+            free(cp->wbuff);
+            cp->bufflen=0;
+        }else{
+            return 0;
+        }
+    }
+    return cp->bufflen==0?0:1;
+}
 
 context * contextInit(char * serveripv4addr, u_int16_t port){
     context * cp = (struct context *) malloc(sizeof(context));
@@ -24,6 +42,8 @@ context * contextInit(char * serveripv4addr, u_int16_t port){
     cp->sockfd = create_conn(serveripv4addr,port);
     cp->serverport = port;
     cp->ipv4addr = serveripv4addr;
+    cp->wbuff=NULL;
+    cp->bufflen=0;
     return cp;
 }
 
@@ -37,7 +57,7 @@ void run(int sockfd)
         memset(buff,0,sizeof(buff));
         memset(aux,0,sizeof(aux));
         printf("\n>");
-        len = read_command(buff);
+        len = readstdin(buff);
         len = is_valid_get(buff,len);
         if(len!=-1){
            // printf("buff \"%s\"",buff);
@@ -64,7 +84,7 @@ void run(int sockfd)
 //read stdin, put the string at str and return string length
 //get key\n
 //return 7, put "get key" in buff   
-int read_command(char *buff){
+int readstdin(char *buff){
     int n =0;
     while ((buff[n++] = getchar()) != '\n');
     buff[n-1]=buff[n];

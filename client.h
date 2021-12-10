@@ -8,13 +8,23 @@
 #define CLIENT_H_
 #include <stdlib.h>
 
+typedef struct replyParser{
+    char * buf;
+    size_t len;
+}replyParser;
+
 typedef struct context {
     char *ipv4addr;
-    char * wbuff; 
-    int sockfd;
+    char * wbuff; /* Write Buffer */
+    replyParser* rreader; 
+    int sockfd; /* socket file descriptor*/
+    int bufflen;
     u_int16_t serverport;     
 } context;
 
+int buffWrite(context *cp);
+
+int buffRead(context *cp);
 
 context * contextInit(char * serveripv4addr, u_int16_t port);
 
@@ -29,13 +39,12 @@ char * get(context * context,char * key);
 char * set(context * context,char * key, char *value);
 
 
-/*
-   
 
+/*
     src must be a valid get command, ex:
     GET KEY
     len is the length of key
-    dest is an empty array
+    dest is an empty string
 
     return sum of characters in dest
     

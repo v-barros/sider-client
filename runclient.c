@@ -7,6 +7,9 @@
 #include "client.h"
 #include "connection.h"
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int main(int argc, char **argv)
 {
@@ -14,9 +17,14 @@ int main(int argc, char **argv)
     int port = strtol(argv[2],NULL,10);
     context * scontext = contextInit(argv[1],port);
 
+    char * str = (char *)malloc(10);
+    memcpy(str,"$0$3$foo\r\n",10);
+    scontext->wbuff = str;
+    scontext->bufflen=10;
+    printf("\n>%d",buffWrite(scontext));
     // function for chat
-    run(scontext->sockfd);
-   
-    // close the socket
+   // run(scontext->sockfd);
+    
+    
     close_socket(scontext->sockfd);
 }
