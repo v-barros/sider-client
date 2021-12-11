@@ -18,13 +18,16 @@ int main(int argc, char **argv)
     context * scontext = contextInit(argv[1],port);
 
     char * str = (char *)malloc(10);
-    memcpy(str,"$0$3$foo\r\n",10);
+    memcpy(str,"$1$3$5$keyvalue\r\n",17);
     scontext->wbuff = str;
-    scontext->bufflen=10;
+    scontext->bufflen=17;
+
     printf("\n>%d",buffWrite(scontext));
+    if(buffRead(scontext))
+        printf("\n>%s\n",get_reply_str(scontext));
+    
     // function for chat
    // run(scontext->sockfd);
-    
     
     close_socket(scontext->sockfd);
 }

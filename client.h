@@ -16,15 +16,19 @@ typedef struct replyParser{
 typedef struct context {
     char *ipv4addr;
     char * wbuff; /* Write Buffer */
-    replyParser* rreader; 
+    replyParser* rParser; 
     int sockfd; /* socket file descriptor*/
     int bufflen;
     u_int16_t serverport;     
 } context;
 
+char * get_reply_str(context*cp);
+
 int buffWrite(context *cp);
 
 int buffRead(context *cp);
+
+int parserFeed(replyParser * rp,const char *buff, ssize_t len);
 
 context * contextInit(char * serveripv4addr, u_int16_t port);
 

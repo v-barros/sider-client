@@ -16,13 +16,53 @@
 #define MAX 110
 #define maxkeylength 100
 
+char * sstr_get(replyParser*rp);
+
+replyParser * new_parser(){
+    replyParser * rp = (replyParser*) malloc(sizeof(replyParser));
+    assert(rp);
+    rp->buf = malloc(1024);
+    assert(rp->buf);
+    rp->len =0;
+    return rp;
+}
 int readstdin(char *buff);
 
-int buffRead(context *cp);
+int parserFeed(replyParser * rp,const char *buff, ssize_t len){
+    if(buff!=NULL && len >1){
+        memcpy(rp->buf,buff,len);
+        rp->buf[len]='\0';
+        rp->len = len;
+        return 1;
+    }
+    return 0;
+}
+
+char * sstr_get(replyParser*rp){
+    if(rp)
+        return rp->buf;
+    return "";    
+}
+
+char * get_reply_str(context*cp){
+    return sstr_get(cp->rParser);
+}
+
+int buffRead(context *cp){
+    char buff[1024];
+    ssize_t nread;
+    nread = read(cp->sockfd,buff,sizeof(buff));
+    if(nread<0)
+        return 0;
+    if(parserFeed(cp->rParser,buff,nread))
+        return 1;
+    return 0;
+}
 
 int buffWrite(context *cp){
+    ssize_t nwrite;
     if(cp->bufflen>0){
-        ssize_t nwrite = write(cp->sockfd,cp->wbuff,cp->bufflen);
+        nwrite = write(cp->sockfd,cp->wbuff,cp->bufflen);
         if(nwrite<0){
             return 0;
         }
@@ -42,7 +82,8 @@ context * contextInit(char * serveripv4addr, u_int16_t port){
     cp->sockfd = create_conn(serveripv4addr,port);
     cp->serverport = port;
     cp->ipv4addr = serveripv4addr;
-    cp->wbuff=NULL;
+    cp->wbuff = NULL;
+    cp->rParser = new_parser();
     cp->bufflen=0;
     return cp;
 }
