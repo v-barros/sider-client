@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #define SA struct sockaddr
 
 int create_conn(char * address, u_int16_t port){

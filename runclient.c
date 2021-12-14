@@ -21,10 +21,12 @@ int main(int argc, char **argv)
     memcpy(str,"$1$3$5$keyvalue\r\n",17);
     scontext->wbuff = str;
     scontext->bufflen=17;
-
-    printf("\n>%d",buffWrite(scontext));
-    if(buffRead(scontext))
+    int done=0;
+    printf("\n>%d",buffWrite(scontext,&done));
+    if(buffRead(scontext)){
         printf("\n>%s\n",get_reply_str(scontext));
+        printf("\nvalid%d",validReply(scontext->rParser));
+    }
     
     // function for chat
    // run(scontext->sockfd);

@@ -18,6 +18,22 @@
 
 char * sstr_get(replyParser*rp);
 
+/* Turn the string into a smaller (or equal) string containing only the
+ * substring specified by the 'start' and 'end' indexes.
+ *
+ * The interval is inclusive, so the start and end characters will be part
+ * of the resulting string.
+ *
+ * The string is modified in-place.
+ *
+ * Return value:
+ * -1 (error) if strlen(s) is 0 
+ * -1 if start is grater than end 
+ * new s len on success.
+ *
+ */
+int strmove(char *s, ssize_t start, ssize_t end);
+
 replyParser * new_parser(){
     replyParser * rp = (replyParser*) malloc(sizeof(replyParser));
     assert(rp);
@@ -29,23 +45,14 @@ replyParser * new_parser(){
 int readstdin(char *buff);
 
 int parserFeed(replyParser * rp,const char *buff, ssize_t len){
+    
     if(buff!=NULL && len >1){
-        memcpy(rp->buf,buff,len);
-        rp->buf[len]='\0';
-        rp->len = len;
+        memcpy(rp->buf+rp->len,buff,len);
+        rp->buf[len]=0;
+        rp->len += len;
         return 1;
     }
     return 0;
-}
-
-char * sstr_get(replyParser*rp){
-    if(rp)
-        return rp->buf;
-    return "";    
-}
-
-char * get_reply_str(context*cp){
-    return sstr_get(cp->rParser);
 }
 
 int buffRead(context *cp){
@@ -59,7 +66,7 @@ int buffRead(context *cp){
     return 0;
 }
 
-int buffWrite(context *cp){
+int buffWrite(context *cp, int * done){
     ssize_t nwrite;
     if(cp->bufflen>0){
         nwrite = write(cp->sockfd,cp->wbuff,cp->bufflen);
@@ -70,10 +77,36 @@ int buffWrite(context *cp){
             free(cp->wbuff);
             cp->bufflen=0;
         }else{
-            return 0;
+            int len = strmove(cp->wbuff,nwrite,cp->bufflen-1);
+            if(len>0)
+                cp->bufflen=len;
         }
     }
-    return cp->bufflen==0?0:1;
+    if(done!=NULL) 
+        *done = cp->bufflen==0?0:1;
+    
+    return 1;
+}
+
+int strmove(char *s, ssize_t start, ssize_t end){
+    size_t newlen, len = strlen(s);
+   
+    if (len == 0) return -1;
+    
+    newlen = (start > end) ? 0 : (end-start)+1;
+    if (newlen != 0) {
+        if (start >= (ssize_t)len) {
+            newlen = 0;
+        } else if (end >= (ssize_t)len) {
+            end = len-1;
+            newlen = (start > end) ? 0 : (end-start)+1;
+        }
+    } else {
+        return -1;
+    }
+    if (start && newlen) memmove(s, s+start, newlen);
+    s[newlen] = 0;
+    return newlen;
 }
 
 context * contextInit(char * serveripv4addr, u_int16_t port){
@@ -189,7 +222,18 @@ int is_valid_get(char*c, int len){
     return aux;    
 }
 
-
+int getReply(context *cp){
+    int done=0;
+    do{
+        if(buffWrite(cp,&done)==0)
+            return 0;
+    }while(!done);
+    do{
+        if(buffRead(cp)==0)
+            return 0;        
+    }while(validReply(cp->rParser)==0);
+    
+}
 // set foo bar 
 // srclen 11
 int is_valid_set(int *keylen, int * valuelen, char* src, int srclen){
@@ -238,4 +282,38 @@ int is_valid_set(int *keylen, int * valuelen, char* src, int srclen){
 
     return 1;
 
+}
+
+
+//$5$mykey\r\n
+int validReply(replyParser * rp){
+    if(!rp)
+        return 0;
+    if(rp->len<1)
+        return 0;
+    if(rp->buf[0]!='$')
+        return 0;
+    int n = stoi(rp->buf+1);
+    
+    if(n>0)
+        if(rp->buf[digits(n)+1]!='$')
+            return 0;
+        else if(rp->buf[digits(n)+2+n]!='\r')
+            return 0;
+        else if(rp->buf[digits(n)+3+n]!='\n')
+            return 0;
+        else
+            return 1;
+    return 0;
+        
+}
+
+char * sstr_get(replyParser*rp){
+    if(rp)
+        return rp->buf;
+    return "";    
+}
+
+char * get_reply_str(context*cp){
+    return sstr_get(cp->rParser);
 }

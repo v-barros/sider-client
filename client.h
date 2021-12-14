@@ -24,7 +24,7 @@ typedef struct context {
 
 char * get_reply_str(context*cp);
 
-int buffWrite(context *cp);
+int buffWrite(context *cp, int * done);
 
 int buffRead(context *cp);
 
@@ -42,6 +42,7 @@ char * get(context * context,char * key);
 
 char * set(context * context,char * key, char *value);
 
+int validReply(replyParser * rp);
 
 
 /*
