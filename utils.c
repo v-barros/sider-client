@@ -5,6 +5,9 @@
  *      Author: @v-barros
  */
 #include "utils.h"
+#include <limits.h>
+#include <ctype.h>
+#include <math.h>
 
 int itostring(int n,char *dest){
     if(n<0)
@@ -30,4 +33,30 @@ char itochar(int n){
     if(n>=0&&n<=9)
         return n+0x30;
     return 0x20;
+}
+
+int stoi(char * str){
+    __uint32_t n=0; 
+    while (*str!='$' && n<INT_MAX)
+    {
+        n = (n*10)+(*str - '0');
+        str++;
+    }
+    if (n<INT_MAX)
+        return n;
+    return -1;
+}
+
+__int32_t digits(int v){
+    v=abs(v);
+    return  1
+    + (__int32_t)(v>=10)
+    + (__int32_t)(v>=100)
+    + (__int32_t)(v>=1000)
+    + (__int32_t)(v>=10000)
+    + (__int32_t)(v>=100000)
+    + (__int32_t)(v>=1000000)
+    + (__int32_t)(v>=10000000)
+    + (__int32_t)(v>=100000000)
+    + (__int32_t)(v>=1000000000);
 }

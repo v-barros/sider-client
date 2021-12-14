@@ -20,4 +20,9 @@ int itostring(int n,char*dest);
 // return space (0x20) if n is not in [0-9]
 char itochar(int n);
 
+//str = "112233$"
+//return up to INT_MAX or -1;
+int stoi(char * str);
+
+int digits(int n);
 #endif // UTILS_H_
