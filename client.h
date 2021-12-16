@@ -46,18 +46,16 @@ int validReply(replyParser * rp);
 
 
 /*
-    src must be a valid get command, ex:
-    GET KEY
+    key must be a Null-Terminated String
     len is the length of key
-    dest is an empty string
-
+    encoded destination is cp->wbuff
     return sum of characters in dest
     
-    $<command>$<param_len>${param}\r\n
-    input: src=  GET key ; len = 7
-    dest output: $0$3$key\r\n 
+    $<command>$<key_len>${param}\r\n
+    input: key=  "foo" ; len = "3"
+    cp->wbuff output: $0$3$foo\r\n 
     return value = 10
 */
-int encode_get(char *src,int len,char * dest);
+int encode_get(context * cp,char *src,int len);
 
 #endif // CLIENT_H_

@@ -14,20 +14,20 @@
 int main(int argc, char **argv)
 {
     assert(argc == 3);
-    int port = strtol(argv[2],NULL,10);
+    int port = (int)strtol(argv[2],NULL,10);
     context * scontext = contextInit(argv[1],port);
-
-    char * str = (char *)malloc(10);
-    memcpy(str,"$1$3$5$keyvalue\r\n",17);
+/*
+    char * str = (char *)malloc(16);
+    memcpy(str,"$1$3$3$foobar\r\n",15);
     scontext->wbuff = str;
-    scontext->bufflen=17;
-    int done=0;
-    printf("\n>%d",buffWrite(scontext,&done));
+    scontext->bufflen=15;
+
+    printf("\n>%d",buffWrite(scontext,NULL));
     if(buffRead(scontext)){
         printf("\n>%s\n",get_reply_str(scontext));
         printf("\nvalid%d",validReply(scontext->rParser));
-    }
-    
+    }*/
+    printf("\n\n get> %s",get(scontext,"foo"));
     // function for chat
    // run(scontext->sockfd);
     

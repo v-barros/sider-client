@@ -18,6 +18,12 @@
 
 char * sstr_get(replyParser*rp);
 
+void freeReply(context *scontext);
+
+int getReply(context *cp);
+
+int readstdin(char *buff);
+
 /* Turn the string into a smaller (or equal) string containing only the
  * substring specified by the 'start' and 'end' indexes.
  *
@@ -37,12 +43,11 @@ int strmove(char *s, ssize_t start, ssize_t end);
 replyParser * new_parser(){
     replyParser * rp = (replyParser*) malloc(sizeof(replyParser));
     assert(rp);
-    rp->buf = malloc(1024);
+    rp->buf = (char *)malloc(sizeof(char)*1024);
     assert(rp->buf);
     rp->len =0;
     return rp;
 }
-int readstdin(char *buff);
 
 int parserFeed(replyParser * rp,const char *buff, ssize_t len){
     
@@ -83,7 +88,7 @@ int buffWrite(context *cp, int * done){
         }
     }
     if(done!=NULL) 
-        *done = cp->bufflen==0?0:1;
+        *done = cp->bufflen==0?1:0;
     
     return 1;
 }
@@ -115,7 +120,8 @@ context * contextInit(char * serveripv4addr, u_int16_t port){
     cp->sockfd = create_conn(serveripv4addr,port);
     cp->serverport = port;
     cp->ipv4addr = serveripv4addr;
-    cp->wbuff = NULL;
+    cp->wbuff = (char *) malloc(sizeof(char)*1024);
+    assert(cp->wbuff);
     cp->rParser = new_parser();
     cp->bufflen=0;
     return cp;
@@ -135,7 +141,7 @@ void run(int sockfd)
         len = is_valid_get(buff,len);
         if(len!=-1){
            // printf("buff \"%s\"",buff);
-            len = encode_get(buff,len,aux);
+         //   len = encode_get(buff,len,aux);
            // printf("sending:\"%s\"%d\n",aux,len); // "$0$3$foo\r\n"
             write(sockfd, aux, len);
         }
@@ -167,26 +173,46 @@ int readstdin(char *buff){
     return n-1;
 }
 
-int encode_get(char *src,int keylen,char * dest){
-    dest[0]='$';
-    dest[1]='0';
-    dest[2]='$';   
-    int n = itostring(keylen,dest+3);
-    dest[3+n]='$';
-    memcpy(dest+4+n,src+4,keylen);
-    dest[4+n+keylen]='\r';    
-    dest[5+n+keylen]='\n';
+int encode_get(context * cp, char *key,int keylen){
+    cp->wbuff[0]='$';
+    cp->wbuff[1]='0';
+    cp->wbuff[2]='$';
+    int n = itostring(keylen,cp->wbuff+3);
+    cp->wbuff[3+n]='$';
+    memcpy(cp->wbuff+4+n,key,keylen);
+    cp->wbuff[4+n+keylen]='\r';    
+    cp->wbuff[5+n+keylen]='\n';
+    cp->wbuff[6+n+keylen]=0;
+    cp->bufflen=6+n+keylen;
     return 6 + n +keylen;
 }
 
-char * get(context * context,char * key){
-    return NULL;
+void freeReply(context *scontext){
+    scontext->rParser->buf='0';
+    scontext->rParser->len=0;
+}
+
+char * get(context * scontext,char * key){
+    int klen;
+    if(!key)
+        return NULL;
+    klen = strlen(key);
+
+    encode_get(scontext,key,klen);
+    if(getReply(scontext)){
+        char *c= get_reply_str(scontext);
+        freeReply(scontext);
+        return c;
+    }
+    else {
+        return NULL;
+    }
+
 }
 
 char * set(context * context,char * key, char *value){
     return NULL;
 }
-
 
 // check if input string is a valid get command
 // return -1 if false
@@ -232,8 +258,9 @@ int getReply(context *cp){
         if(buffRead(cp)==0)
             return 0;        
     }while(validReply(cp->rParser)==0);
-    
+    return 1;
 }
+
 // set foo bar 
 // srclen 11
 int is_valid_set(int *keylen, int * valuelen, char* src, int srclen){
@@ -284,7 +311,6 @@ int is_valid_set(int *keylen, int * valuelen, char* src, int srclen){
 
 }
 
-
 //$5$mykey\r\n
 int validReply(replyParser * rp){
     if(!rp)
@@ -315,5 +341,8 @@ char * sstr_get(replyParser*rp){
 }
 
 char * get_reply_str(context*cp){
-    return sstr_get(cp->rParser);
+    char * c= malloc(sizeof(char)*cp->rParser->len);
+    assert(c);
+    memcpy(c,sstr_get(cp->rParser),cp->rParser->len);
+    return c;
 }
