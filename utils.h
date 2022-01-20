@@ -21,7 +21,7 @@ int itostring(int n,char*dest);
 char itochar(int n);
 
 //str = "112233$"
-//return up to INT_MAX or -1;
+//return up to INT_MAX or INT_MAX on error;
 int stoi(char * str);
 
 int digits(int n);
