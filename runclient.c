@@ -27,7 +27,7 @@ int main(int argc, char **argv)
         printf("\n>%s\n",get_reply_str(scontext));
         printf("\nvalid%d",validReply(scontext->rParser));
     }*/
-    printf("\n\n get> %s",get(scontext,"foo"));
+    printf("\n\n get> %s\n",get(scontext,"foo"));
     // function for chat
    // run(scontext->sockfd);
     

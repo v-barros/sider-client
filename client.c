@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <unistd.h>
+#include <limits.h>
 #define MAX 110
 #define maxkeylength 100
 
@@ -23,6 +24,8 @@ void freeReply(context *scontext);
 int getReply(context *cp);
 
 int readstdin(char *buff);
+
+void parse(char ** dest, replyParser  *rp);
 
 /* Turn the string into a smaller (or equal) string containing only the
  * substring specified by the 'start' and 'end' indexes.
@@ -160,7 +163,6 @@ void run(int sockfd)
     }
 }
 
-
 //read stdin, put the string at str and return string length
 //get key\n
 //return 7, put "get key" in buff   
@@ -188,7 +190,7 @@ int encode_get(context * cp, char *key,int keylen){
 }
 
 void freeReply(context *scontext){
-    scontext->rParser->buf='0';
+    *(scontext->rParser->buf)='0';
     scontext->rParser->len=0;
 }
 
@@ -315,13 +317,17 @@ int is_valid_set(int *keylen, int * valuelen, char* src, int srclen){
 int validReply(replyParser * rp){
     if(!rp)
         return 0;
+    char * c = rp->buf;
+
     if(rp->len<1)
         return 0;
     if(rp->buf[0]!='$')
         return 0;
-    int n = stoi(rp->buf+1);
     
-    if(n>0)
+    int n = stoi(rp->buf+1);
+    if(n!=INT_MAX)
+        if(n==-1)
+            return *(rp->buf+5)=='\n';
         if(rp->buf[digits(n)+1]!='$')
             return 0;
         else if(rp->buf[digits(n)+2+n]!='\r')
@@ -330,19 +336,30 @@ int validReply(replyParser * rp){
             return 0;
         else
             return 1;
-    return 0;
-        
-}
 
-char * sstr_get(replyParser*rp){
-    if(rp)
-        return rp->buf;
-    return "";    
+    return 0;
 }
 
 char * get_reply_str(context*cp){
-    char * c= malloc(sizeof(char)*cp->rParser->len);
-    assert(c);
-    memcpy(c,sstr_get(cp->rParser),cp->rParser->len);
+    char * c;
+    parse(&c,cp->rParser);
     return c;
+}
+
+void parse(char ** dest, replyParser * rp ){
+    if(rp->len<=1)
+    {
+        *dest = malloc(5);
+        memcpy(*dest,"null",5);
+    }
+    int len = stoi((rp->buf+1));
+
+    if(len == -1){
+        *dest = malloc(5);
+        memcpy(*dest,"null",5);
+    }else{
+        *dest = malloc(len+1);
+        memcpy(*dest,rp->buf+(digits(len)+2),len);
+        *(*dest+len)='\0';
+    }
 }
