@@ -38,24 +38,34 @@ int is_valid_get(char*c,int len);
 
 int is_valid_set(int *keylen, int * valuelen, char* src, int srclen);
 
-char * get(context * context,char * key);
+char * get(context * scontext,char * key);
 
-char * set(context * context,char * key, char *value);
+char * set(context * scontext,char * key, char *value);
 
 int validReply(replyParser * rp);
 
 
 /*
     key must be a Null-Terminated String
-    len is the length of key
+    keylen is the length of key
     encoded destination is cp->wbuff
-    return sum of characters in dest
+    returns sum of characters in dest
     
     $<command>$<key_len>${param}\r\n
     input: key=  "foo" ; len = "3"
     cp->wbuff output: $0$3$foo\r\n 
     return value = 10
 */
-int encode_get(context * cp,char *src,int len);
+int encode_get(context * cp,char *key,int keylen);
 
+/*
+    both key and value must be Null-Terminated Strings
+    keylen is the length of key
+    valuelen is the length of value
+    encoded destination is cp->wbuff
+    return sum of characters in dest
+*/
+int encode_set(context * cp,char *key,char *value,int keylen,int valuelen);
+
+void freeReply(context *scontext);
 #endif // CLIENT_H_

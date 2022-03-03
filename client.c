@@ -19,7 +19,7 @@
 
 char * sstr_get(replyParser*rp);
 
-void freeReply(context *scontext);
+//void freeReply(context *scontext);
 
 int getReply(context *cp);
 
@@ -175,6 +175,26 @@ int readstdin(char *buff){
     return n-1;
 }
 
+
+//$1$3$3$foobar
+int encode_set(context * cp,char *key,char *value,int keylen,int valuelen){
+    int chars;
+    cp->wbuff[0]='$';
+    cp->wbuff[1]='1';
+    cp->wbuff[2]='$';
+    chars = itostring(keylen,cp->wbuff+3);
+    cp->wbuff[3+chars]='$';
+    chars+= itostring(valuelen,cp->wbuff+4+chars);
+    cp->wbuff[4+chars]='$';
+    memcpy(cp->wbuff+5+chars,key,keylen);
+    memcpy(cp->wbuff+5+chars+keylen,value,valuelen);
+    cp->wbuff[5+chars+keylen+valuelen]='\r';    
+    cp->wbuff[6+chars+keylen+valuelen]='\n';    
+    cp->wbuff[7+chars+keylen+valuelen]=0;    
+    cp->bufflen=6+chars+keylen+valuelen;
+    return 6+chars+keylen+valuelen;
+}
+
 int encode_get(context * cp, char *key,int keylen){
     cp->wbuff[0]='$';
     cp->wbuff[1]='0';
@@ -212,8 +232,23 @@ char * get(context * scontext,char * key){
 
 }
 
-char * set(context * context,char * key, char *value){
-    return NULL;
+char * set(context * scontext,char * key, char *value){
+    int klen, vlen;
+    if(!key || !value)
+        return NULL;
+
+    klen = strlen(key);
+    vlen = strlen(value);
+
+    encode_set(scontext,key,value,klen,vlen);
+    if(getReply(scontext)){
+        char *c= get_reply_str(scontext);
+        freeReply(scontext);
+        return c;
+    }
+    else {
+        return NULL;
+    }
 }
 
 // check if input string is a valid get command
